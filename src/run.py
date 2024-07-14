@@ -1,9 +1,9 @@
 import requests
 import sys
 
-import auth
-from playlists.track import Track
-from playlists.playlist import Playlist
+from util import auth, ytmusic
+from models.track import Track
+from models.playlist import Playlist
 
 if __name__ == "__main__":
     # get auth access token
@@ -20,16 +20,19 @@ Spotify to MP3 Playlist Converter
     
     response = requests.get(url, headers=headers)
     
-    # parse
+    # parse JSON playlist data
     if response.status_code != 200:
         print("Invalid request receive! Status code: " + str(response.status_code))
-        print("Please try again, ensuring that you have entered a valid playlist code")
+        print("Please try again, ensuring that you have entered a valid publicplaylist code")
         print("Application closing...")
         sys.exit()
-    else:
-        print("Retrieving playlist data...")
-        pl_data = response.json()
-        
-        playlist = Playlist(pl_data["name"], playlist_id)
-        playlist.create_tracks(pl_data["tracks"]["href"], headers)
+    
+    # continue if valid public playlist detected
+    print("Retrieving playlist data...")
+    pl_data = response.json()
+    
+    playlist = Playlist(pl_data["name"], playlist_id)
+    playlist.create_tracks(pl_data["tracks"]["href"], headers)
+    
+    ytmusic.get_song_link(playlist.tracks[0].track_name, playlist.tracks[0].artist_name)
         

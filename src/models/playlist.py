@@ -1,6 +1,6 @@
 import requests
 
-from playlists.track import Track
+from models.track import Track
 
 class Playlist:
     def __init__(self, name: str, id: str):
@@ -14,6 +14,7 @@ class Playlist:
         
         for track in tracks_data['items']: # 0 refers to TrackObject JSON
             track_name = track['track']['name']
+            print(track_name)
             album_name = track['track']['album']['name']
             album_img_url = track['track']['album']['images'][0]['url']
             artist_name = track['track']['artists'][0]['name']
