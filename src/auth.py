@@ -31,7 +31,7 @@ def get_token():
         access_data = response.json()
         return access_data["access_token"]
     else:
-        print("Invalid request received. Status code: " + str(response.status_code))
+        print("Invalid request received! Status code: " + str(response.status_code))
         print("Please try again, ensuring that CLIENT_ID and CLIENT_SECRET are both correct!")
         print("Application closing...")
         sys.exit()
