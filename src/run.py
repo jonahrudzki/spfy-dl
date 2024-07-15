@@ -34,5 +34,6 @@ Spotify to MP3 Playlist Converter
     playlist = Playlist(pl_data["name"], playlist_id)
     playlist.create_tracks(pl_data["tracks"]["href"], headers)
     
-    ytmusic.get_song_link(playlist.tracks[0].track_name, playlist.tracks[0].artist_name)
+    # ytmusicapi call to get top song search request yt video id
+    v_id = ytmusic.get_song_link(playlist.tracks[0].track_name, playlist.tracks[0].artist_name)
         
