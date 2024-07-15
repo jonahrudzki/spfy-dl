@@ -14,10 +14,20 @@ class Playlist:
         
         for track in tracks_data['items']: # TrackObject JSON
             track_name = track['track']['name']
+            
+            # repalce invalid chars for name saving
+            invalid_chars = '\\/:*?"<>|'
+            for char in invalid_chars:
+                track_name = track_name.replace(char, '_')
+            
             album_name = track['track']['album']['name']
             album_img_url = track['track']['album']['images'][0]['url'] 
             artist_name = track['track']['artists'][0]['name']
             
             self.tracks.append(Track(track_name, album_name, album_img_url, artist_name))
             
-        
+    def get_tracks(self):
+        return self.tracks
+    
+    def get_name(self):
+        return self.name

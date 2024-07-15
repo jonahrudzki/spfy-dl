@@ -1,7 +1,7 @@
 import requests
 import sys
 
-from util import auth, ytmusic
+from util import auth, songdl
 from models.track import Track
 from models.playlist import Playlist
 
@@ -35,5 +35,4 @@ Spotify to MP3 Playlist Converter
     playlist.create_tracks(pl_data["tracks"]["href"], headers)
     
     # ytmusicapi call to get top song search request yt video id
-    v_id = ytmusic.get_song_link(playlist.tracks[0].track_name, playlist.tracks[0].artist_name)
-        
+    songdl.download_tracks(playlist)
