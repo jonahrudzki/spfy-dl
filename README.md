@@ -1,2 +1,2 @@
-# spotify-downloader
-Python app for converting Spotify playlists to mp3 files
+# spfy-dl
+Python app for converting playlists to mp3 files
