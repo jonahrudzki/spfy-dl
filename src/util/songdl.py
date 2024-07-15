@@ -8,6 +8,8 @@ from models.playlist import Playlist
 from util import ytmusic
 from yt_dlp import YoutubeDL
 
+from mutagen.id3 import ID3, APIC, error
+
 # define the base output path
 BASE_OUTPUT_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'output')
 
@@ -47,7 +49,7 @@ def download_tracks(playlist: Playlist):
                 'format': 'bestaudio/best',
                     'postprocessors': [{
                     'key': 'FFmpegMetadata',
-                    'add_metadata': True
+                    'add_metadata': True,
                 }, {
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
@@ -59,7 +61,7 @@ def download_tracks(playlist: Playlist):
                     '-metadata', f'album={track.get_album_name()}',
                     '-strict', '-2'
                 ],
-                'outtmpl': os.path.join(download_path, f"{track.get_track_name()}.%(ext)s"),
+                'outtmpl': os.path.join(download_path, f"{title}.%(ext)s"),
                 'logger': MyLogger(),
                 'progress_hooks': [my_hook]
             }
@@ -67,6 +69,9 @@ def download_tracks(playlist: Playlist):
             # send download request for file from yt-dlp API
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([track.get_url()])
+                
+            # embed album cover image into MP3 file using Mutagen
+            embed_album_cover(image_filename, os.path.join(download_path, f"{title}.mp3"))
             
             # clean up the downloaded image
             Path(image_filename).unlink()
@@ -78,14 +83,33 @@ def download_tracks(playlist: Playlist):
         track = failed.pop(0)
         try:
             # download the image cover art
-            image_filename = os.path.join(download_path, f"{track.get_track_name()}_cover.jpg")
+            title = track.get_track_name()
+            
+            invalid_chars = '\\/:*?"<>|' # replace incorrect chars
+            for char in invalid_chars:
+                title = title.replace(char, '_')
+            
+            image_filename = os.path.join(download_path, f"{title}_cover.jpg")
             download_image(track.get_album_img(), image_filename)
             
             # ddd yt-dlp download options/embed metadata
             ydl_opts = {
                 'format': 'bestaudio/best',
-                
-                'outtmpl': os.path.join(download_path, f"{track.get_track_name()}.%(ext)s"),
+                    'postprocessors': [{
+                    'key': 'FFmpegMetadata',
+                    'add_metadata': True,
+                }, {
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '320',
+                }],
+                'postprocessor_args': [
+                    '-metadata', f'title={track.get_track_name()}',
+                    '-metadata', f'artist={track.get_artist_name()}',
+                    '-metadata', f'album={track.get_album_name()}',
+                    '-strict', '-2'
+                ],
+                'outtmpl': os.path.join(download_path, f"{title}.%(ext)s"),
                 'logger': MyLogger(),
                 'progress_hooks': [my_hook]
             }
@@ -93,6 +117,9 @@ def download_tracks(playlist: Playlist):
             # send download request for file from yt-dlp API
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([track.get_url()])
+                
+            # embed album cover image into MP3 file using Mutagen
+            embed_album_cover(image_filename, os.path.join(download_path, f"{title}.mp3"))
             
             # clean up the downloaded image
             Path(image_filename).unlink()
@@ -108,7 +135,30 @@ def download_image(image_url, output_path):
     else:
         print(f"Failed to download image: {image_url}")
 
-# see "progress_hooks" in help(yt_dlp.YoutubeDL)
+# function to embed cover art to downloaded mp3
+def embed_album_cover(image_path, mp3_path):
+    # load the MP3 file
+    audio = ID3(mp3_path)
+    
+    # add album cover
+    with open(image_path, 'rb') as f:
+        cover = APIC(
+            encoding=3,  # utf-8
+            mime='image/jpeg',
+            type=3,  # cover image
+            desc=u'Cover',
+            data=f.read()
+        )
+        audio.add(cover)
+    
+    # save the modified image tags
+    try:
+        audio.save(v2_version=3)  # use ID3v2.3 tags for compatibility
+        print(f"Album cover embedded into {mp3_path}")
+    except error:
+        print(f"Failed to embed album cover into {mp3_path}")
+
+# from yt-dlp doc library 'progress hooks'
 def my_hook(d):
     if d['status'] == 'finished':
         print('Done downloading, now post-processing ...')
@@ -131,12 +181,3 @@ class MyLogger:
 
     def error(self, msg):
         print(msg)
-
-        # Print the FFmpeg command
-        if msg.startswith('[ffmpeg] '):
-            print(msg[len('[ffmpeg] '):])  # Print the command without the prefix
-
-    #def error(self, msg):
-        #print(msg)
-        
-    
