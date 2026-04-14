@@ -1,10 +1,16 @@
 import requests
 import sys
+import os
+from google.oauth2.credentials import Credentials as OAuthCredentials
+
 
 from ytmusicapi import YTMusic
 
 def get_song_link(track_name: str, artist_name: str) -> str:
-    ytmusic = YTMusic()
+    cli_id = os.getenv('YTMUSIC_CLIENT_ID')
+    cli_scrt = os.getenv('YTMUSIC_CLIENT_SECRET')
+    
+    ytmusic = YTMusic('./oauth.json')
     search_query = artist_name + " " + track_name
     
     results = ytmusic.search(search_query, filter="songs")
