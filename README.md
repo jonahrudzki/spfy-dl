@@ -3,7 +3,7 @@
 # spfy-dl
 
 A lightweight Spotify downloader built with Node.js that allows you to download tracks, albums, and playlists using Spotify links.
-(*Note*: Changes to google/ytmusic api Oauth may render this project outdated as of 14/04/2026)
+(Note: Changes to google/ytmusic api Oauth may render this project outdated as of 14/04/2026)
 
 > This tool does not download audio directly from Spotify. It retrieves metadata from Spotify and sources audio from external providers.
 
